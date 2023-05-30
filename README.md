@@ -25,4 +25,6 @@ to run this app, its needed only your cloudinary credencials from dashboard (Clo
  ```
  # Run the app
  $ docker-compose up --build
+ 
+ # Access http://localhost:4000 after everything starts from your browser
  ```
