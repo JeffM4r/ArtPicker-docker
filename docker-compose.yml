@@ -1,0 +1,71 @@
+version: '3'
+services:
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./ArtPicker-frontend
+      dockerfile: Dockerfile
+    volumes:
+      - build_react:/var/www/html      
+  
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - 4000:80
+    links:
+      - backend
+    volumes:
+      - build_react:/var/www/html
+    depends_on:
+      frontend:
+        condition: service_completed_successfully
+      backend:
+        condition: service_healthy
+
+
+  backend:
+    env_file:
+      - .env
+    container_name: backend
+    build:
+      context: ./ArtPicker-backend
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    links:
+      - database
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database: 
+    image: postgres:13
+    ports:
+      - 2345:5432
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: artpickup
+      POSTGRES_PASSWORD: example
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes: 
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+  build_react:
+
+  
